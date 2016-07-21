@@ -1,0 +1,10 @@
+.DS_STORE
+.keep
+.idea
+client_secret.json
+.sass-cache
+.sass-cache/*
+**/.sass-cache
+**/.sass-cache/*
+node_modules/
+/vendor/
