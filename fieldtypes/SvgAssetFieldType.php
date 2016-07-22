@@ -6,7 +6,7 @@ namespace Craft;
 */
 class SvgAssetFieldType extends AssetsFieldType
 {
-    protected $elementType = 'SvgAsset';
+    protected $elementType = 'Asset';
     protected $values = array();
 
     public function getName()
@@ -16,6 +16,7 @@ class SvgAssetFieldType extends AssetsFieldType
 
     public function getInputHtml($name, $criteria)
     {
+        craft()->templates->includeJsResource('svgasset/js/vendor/shape.SvgConvert.min.js');
         craft()->templates->includeJsResource('svgasset/js/SvgAssetField.js');
         craft()->templates->includeCssResource("svgasset/css/SvgAssetField.css");
 
@@ -27,7 +28,7 @@ class SvgAssetFieldType extends AssetsFieldType
         $elementId = $this->element ? $this->element->id : null;
         $modelId = $this->model ? $this->model->id : null;
 
-        $variables["focusJs"] = "new Craft.SvgAssetField(\"$namespacedId\");";
+        $variables["svgCodeJs"] = "new Craft.SvgAssetField(\"$namespacedId\");";
 
         return craft()->templates->render('svgasset/fieldtype/input', $variables);
     }

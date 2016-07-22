@@ -1,3 +1,10 @@
+$(document).ready(function() {
+  console.log('convert time');
+  return $('.svg-convert').shapeSvgConvert({
+    cleanUp: ['width', 'height', 'id', 'class', 'xmlns:xlink', 'xml:space', 'version']
+  });
+});
+
 Craft.SvgAssetField = Garnish.Base.extend({
   $this: null,
   $parentInput: null,
@@ -8,7 +15,6 @@ Craft.SvgAssetField = Garnish.Base.extend({
   svgCodeIconTpl: null,
   init: function(id) {
     var btnClick, preventDefault, that;
-    console.log('hi');
     that = this;
     this.$this = $('#' + id);
     this.$parentInput = this.$this.closest('.input').find('>input[type=\'hidden\']');
@@ -24,64 +30,65 @@ Craft.SvgAssetField = Garnish.Base.extend({
       var id;
       event.stopPropagation();
       id = $(this).closest('.element').data('id');
-      console.log(that.modals);
       return that.modals[id].show();
     };
     this.$elements.find('.element').each(function(i, e) {
-      $(e).addClass('svgcodeelement');
-      return $(that.svgCodeIconTpl).prependTo($(e)).bind('click', btnClick).bind('mousedown mouseup', preventDefault);
+      var extension, image;
+      image = $(e).data('url');
+      extension = image.substr(image.lastIndexOf('.') + 1);
+      switch (extension) {
+        case 'svg':
+          $(e).addClass('svgcodeelement');
+          id = $(e).data('id');
+          that.initializeModal(id);
+          return $(that.svgCodeIconTpl).prependTo($(e)).bind('click', btnClick).bind('mousedown mouseup', preventDefault);
+      }
     });
     this.$this.data('elementSelect').on('selectElements', function(e) {
       var $newElements;
       $newElements = that.$elements.find('.element').slice(-e.elements.length);
       return $newElements.each(function(i, e) {
-        var id;
-        var $newEl, index, label;
-        $newEl = $(e).addClass('svgcodeelement');
-        index = that.$elements.find('.element').index($newEl);
-        id = $newEl.data('id');
-        label = $newEl.data('label');
-        $('<div data-id="' + id + '"><textarea name="' + that.$parentInput.attr('name') + '[svgCode]" readonly></textarea></div>').appendTo(that.$data);
-        $(that.svgCodeIconTpl).prependTo($(e)).bind('click', btnClick).bind('mousedown mouseup', preventDefault);
-        return that.initializeModal(id);
+        var $newEl, extension, image, label;
+        image = $(e).data('url');
+        extension = image.substr(image.lastIndexOf('.') + 1);
+        switch (extension) {
+          case 'svg':
+            var id;
+            $newEl = $(e).addClass('svgcodeelement');
+            id = $newEl.data('id');
+            label = $newEl.data('label');
+            $('<div data-id="' + id + '"><textarea name="' + that.$parentInput.attr('name') + '[svgCode]" readonly></textarea></div>').appendTo(that.$data);
+            $(that.svgCodeIconTpl).prependTo($(e)).bind('click', btnClick).bind('mousedown mouseup', preventDefault);
+            return that.initializeModal(id);
+        }
       });
     });
     return this.$this.data('elementSelect').on('removeElements', function(e) {
       var id;
       id = 0;
-      that.$data.find('>div').each(function() {
+      return that.$data.find('>div').each(function() {
         if (e.target.$elements.filter('[data-id="' + $(this).data('id') + '"]').length < 1) {
           id = $(this).data('id');
           return $(this).remove();
         }
       });
-      return that.destroyModal(id);
     });
   },
   initializeModal: function(id) {
-    var $modal, image, myModal, observer, observerConfig, oldDisplay, oldWidth, timeout;
-    console.log(id);
+    var $modal, image, myModal, observer, observerConfig, oldDisplay, oldWidth, svgCode, timeout;
     image = this.$elements.find('.element[data-id=\'' + id + '\']').data('url');
-    $modal = $('<div class="modal elementselectormodal" data-id="' + id + '">Hi :)</div>');
+    svgCode = '';
+    $modal = $('<div class="modal elementselectormodal" data-id="' + id + '">' + '    <div class="body">' + '        <div class="content">' + '            <div class="main">' + '                <div class="field"><div class="input"><textarea class="text nicetext fullwidth put-svg-here" rows="4" cols="50" style="min-height:250px;"></textarea></div></div>' + '                <div class="svg-code"><img src="' + image + '" class="svg-convert"></div>' + '            </div>' + '        </div>' + '    </div>' + '    <div class="footer">' + '        <div class="buttons left secondary-buttons">' + '            <div class="btn load-svg dashed">Reload SVG Code</div>' + '        </div>' + '        <div class="buttons right">' + '            <div class="btn submit">Ok</div>' + '        </div>' + '    </div>' + '</div>');
     myModal = new Garnish.Modal($modal, {
       autoShow: false,
-      resizable: true
+      resizable: false
     });
     oldWidth = $modal.width();
     oldDisplay = 'none';
     timeout = null;
     observer = new MutationObserver(function(mutations) {
       return mutations.forEach(function(mutation) {
-        if (mutation.target === $modal[0] && mutation.attributeName === 'style') {
-          if (oldDisplay !== $modal[0].style.display) {
-            oldDisplay = $modal[0].style.display;
-          }
-          if (oldWidth !== $modal[0].style.width) {
-            if (timeout === null) {
-              return oldWidth = $modal[0].style.width;
-            }
-          }
-        }
+        return console.log(mutation);
       });
     });
     observerConfig = {
@@ -96,6 +103,14 @@ Craft.SvgAssetField = Garnish.Base.extend({
     observer.observe($modal[0], observerConfig);
     $modal.find('.submit').click(function() {
       return myModal.hide();
+    });
+    $modal.find('.load-svg').click(function() {
+      return $('.svg-convert').shapeSvgConvert({
+        cleanUp: ['width', 'height', 'id', 'class', 'xmlns:xlink', 'xml:space', 'version'],
+        onComplete: function() {
+          return $('.put-svg-here').val($('.svg-code').html());
+        }
+      });
     });
     return this.modals[id] = myModal;
   },

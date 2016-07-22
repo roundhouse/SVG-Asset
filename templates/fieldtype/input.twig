@@ -20,9 +20,12 @@
 
     <div class="svg-code-modal">
         {% for element in elements %}
-            <div data-id="{{ element.id }}">
-                <textarea name="{{ name }}[svgCode]" readonly>{{ svgCode|default ? svgCode : '' }}</textarea>
-            </div>
+            {% set ext = element.getExtension() %}
+            {% if ext == 'svg' %}
+                <div data-id="{{ element.id }}">
+                    <textarea name="{{ name }}[svgCode]" readonly>{{ svgCode|default ? svgCode : '' }}</textarea>
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
 
@@ -47,5 +50,5 @@
 {% endincludejs %}
 
 {% includejs %}
-    {{ focusJs|raw }}
+    {{ svgCodeJs|raw }}
 {% endincludejs %}
